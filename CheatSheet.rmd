@@ -1,0 +1,31 @@
+---
+title: "CheatSheet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Models lineals
+
+### Basics
+
+```{r}
+setwd('.')
+dd<-read.csv2("./data.csv")
+model = lm(formula=Y~1, data=dd)
+```
+Exemples de fórmules:
+
+```{r}
+f0 = Y ~ 1 # model null
+f1 = Y ~ X # regresió simple
+f2 = Y ~ X1 + X2 
+f3 = Y ~ X * F # regresió simple amb un factor
+```
+
+La variança estimada de l'error:
+```{r}
+summary(model)
+```
