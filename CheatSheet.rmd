@@ -9,23 +9,41 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Models lineals
 
+### Previa
+LLibreries que acostumem a incloure encara que no sabem exactament què fan.
+```{r}
+library(emmeans)
+library(car)
+library(RcmdrMisc)
+library(tables)
+```
+
 ### Basics
 
 ```{r}
 setwd('.')
 dd<-read.csv2("./data.csv")
-model = lm(formula=Y~1, data=dd)
+dd$Any<-as.factor(dd$Any)
+dd$M<-as.factor(dd$M)
+model = lm(formula=Y~X, data=dd)
 ```
 Exemples de fórmules:
 
 ```{r}
 f0 = Y ~ 1 # model null
 f1 = Y ~ X # regresió simple
-f2 = Y ~ X1 + X2 
-f3 = Y ~ X * F # regresió simple amb un factor
+f2 = Y ~ X1 + X2 # model aditiu
+f3 = Y ~ X * M # regresió simple amb un factor
 ```
+
+Per veure ràpidament les dades:
+```{r}
+scatterplot(Y~X*M,smooth=F, boxplot = F,data=dd)
+with(dd, plotMeans(response=Y,factor1=Any,factor2=M,error.bars="none",level=0.95))
+```
+
 
 La variança estimada de l'error:
 ```{r}
-summary(model)
+summary(model)$sigma^2
 ```
