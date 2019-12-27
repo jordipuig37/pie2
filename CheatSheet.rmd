@@ -19,29 +19,69 @@ library(tables)
 ```
 
 ### Basics
-
+Carregar les dades del fitxer data.csv
 ```{r}
 setwd('.')
-dd<-read.csv2("./data.csv")
-dd$Any<-as.factor(dd$Any)
-dd$M<-as.factor(dd$M)
-model = lm(formula=Y~X, data=dd)
+dades<-read.csv2("./data.csv")
+# dades<-read.csv2("~/uni/2n/prob2/exercicis r/comrect.csv")
+dades$Any<-as.factor(dades$Any)
+dades$M<-as.factor(dades$M)
+model = lm(formula=Y~X, data=dades)
 ```
+
 Exemples de fórmules:
 
 ```{r}
 f0 = Y ~ 1 # model null
 f1 = Y ~ X # regresió simple
 f2 = Y ~ X1 + X2 # model aditiu
-f3 = Y ~ X * M # regresió simple amb un factor
+f3 = Y ~ X * M # regresió simple amb un factor o model factorial
 ```
 
-Per veure ràpidament les dades:
+
+#### Per veure ràpidament les dades:  
+__scatterplot: formula(factorial), data__\
+La variable resposta vs la variable en una recta per cada factor
+
+
 ```{r}
-scatterplot(Y~X*M,smooth=F, boxplot = F,data=dd)
-with(dd, plotMeans(response=Y,factor1=Any,factor2=M,error.bars="none",level=0.95))
+scatterplot(Y~X*M,smooth=F, boxplot = F,data=dades)
 ```
 
+__with(data, plotMeans(response, factor1, factor2))__\
+Fa la mitjana per cada combinació de factors
+
+```{r}
+with(dades,plotMeans(response=Y,factor1=Any,factor2=M,error.bars="none",level=0.95))
+```
+
+
+
+
+```{r}
+model1 = lm(formula=Y ~ M+Any, data=dades)
+emmeans(model1, M~Any, CIs=T)
+```
+
+### Comprovacions
+
+Pels errors
+```{r}
+
+plot(model1,which=1)
+# línia al 0:
+abline(h=0,lty=2)
+#with(dades,leveneTest(resid(model1),as.factor(paste(M,Any))))
+
+# (extra) El mateix en el model factorial
+
+#mf<-lm(AREA~ESPECIE*COMPOST,data=dd)
+
+#plot(mf,which=1)
+#abline(h=0,lty=2)
+
+#with(dd,leveneTest(resid(mf),as.factor(paste(ESPECIE,COMPOST))))
+```
 
 La variança estimada de l'error:
 ```{r}
