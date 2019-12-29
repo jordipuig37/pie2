@@ -4,12 +4,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
 
-## Models lineals
+# Models lineals
 
-### Previa
+### Prèvia
 LLibreries que acostumem a incloure encara que no sabem exactament què fan.
 ```{r}
 library(emmeans)
@@ -19,55 +19,78 @@ library(tables)
 ```
 
 ### Basics
-Carregar les dades del fitxer data.csv
+Carregar les dades del fitxer data.csv i plantejar un model.
+
 ```{r}
 setwd('.')
 dades<-read.csv2("./data.csv")
 # dades<-read.csv2("~/uni/2n/prob2/exercicis r/comrect.csv")
+# Assegurar-se que les columnes (en aquest cas) Any i M són factors (poden no carregar-se automàticament com a factors si són números com passa a Any)
 dades$Any<-as.factor(dades$Any)
 dades$M<-as.factor(dades$M)
+
+# is.factor(dades$Any)
+
 model = lm(formula=Y~X, data=dades)
 ```
 
-Exemples de fórmules:
+Exemples de fórmules per diferents models:
 
 ```{r}
 f0 = Y ~ 1 # model null
 f1 = Y ~ X # regresió simple
 f2 = Y ~ X1 + X2 # model aditiu
+f2'= Y ~ X + M # model aditiu però una variable és un factor en realitat
 f3 = Y ~ X * M # regresió simple amb un factor o model factorial
 ```
 
 
 #### Per veure ràpidament les dades:  
-__scatterplot: formula(factorial), data__\
-La variable resposta vs la variable en una recta per cada factor
+__Funció scatterplot per les rectes de regressió__\
+*scatterplot(formula(factorial), data)* ploteja la variable resposta vs la variable en una recta per cada factor. Si la fórmula és d'un model aditiu es veu només una recta.
 
 
 ```{r}
 scatterplot(Y~X*M,smooth=F, boxplot = F,data=dades)
 ```
 
-__with(data, plotMeans(response, factor1, factor2))__\
-Fa la mitjana per cada combinació de factors
+__Les mitjanes per diferents factors__\
+*with(data, plotMeans(response, factor1, factor2))* fa la mitjana per cada combinació dels dos factors 1 i 2.
 
 ```{r}
 with(dades,plotMeans(response=Y,factor1=Any,factor2=M,error.bars="none",level=0.95))
 ```
 
 
-
+__EMMeans__\
+EMM (estimated marginal means) calcula les mitjanes marginals per alguns factors especificats a *specs*
+Podem veure quins factors són estadísticament diferents (amb un nivell de significació donat) visualment amb pwpp(em) si no estan units per la línia. Tenim funcions interessants com pairs(em) que  fa ______. La funció pwpp ens il·lustra el test de Tukey per saber quins factors són estadísticament iguals amb un nivell de significació donat.
 
 ```{r}
-model1 = lm(formula=Y ~ M+Any, data=dades)
-emmeans(model1, M~Any, CIs=T)
+#dades_emm = read.csv2("./")
+model1 = lm(formula=Y ~ X+Any, data=dades)
+emm <- emmeans(object = model1, specs = ~X+Any, CIs=T)
+pairs(emm)
+
+pwpp(emm,adjust="tukey")
 ```
 
 ### Comprovacions
 
-Pels errors
-```{r}
+Pels errors podem veure amb la funció plot i el parametre *which* = 1.
+La funció plot té més funcionalitats si el primer paràmetre és el model lineal i *which* = [1,6]
 
+
+1. A plot of residuals against fitted values\
+2. A normal Q-Q plot\
+3. A Scale-Location plot of sqrt(| residuals |) against fitted values\
+4. A plot of Cook's distances versus row labels\
+5. A plot of residuals against leverages\
+6. A plot of Cook's distances against leverage/(1-leverage)\
+
+Ara veiem el plot dels residus. Recorda que s'ha de veure una distribució uniforme sobre el pla. Si es veu alguna forma d'embut cal aplicar transformacions.
+
+```{r}
 plot(model1,which=1)
 # línia al 0:
 abline(h=0,lty=2)
