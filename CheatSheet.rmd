@@ -24,10 +24,12 @@ Carregar les dades del fitxer data.csv i plantejar un model.
 ```{r}
 setwd('.')
 dades<-read.csv2("./data.csv")
+sales<-read.csv2("./sales_record100.csv", sep=",")
 # dades<-read.csv2("~/uni/2n/prob2/exercicis r/comrect.csv")
 # Assegurar-se que les columnes (en aquest cas) Any i M són factors (poden no carregar-se automàticament com a factors si són números com passa a Any)
 dades$Any<-as.factor(dades$Any)
 dades$M<-as.factor(dades$M)
+
 
 # is.factor(dades$Any)
 
@@ -40,7 +42,7 @@ Exemples de fórmules per diferents models:
 f0 = Y ~ 1 # model null
 f1 = Y ~ X # regresió simple
 f2 = Y ~ X1 + X2 # model aditiu
-f2'= Y ~ X + M # model aditiu però una variable és un factor en realitat
+f22= Y ~ X + M # model aditiu però una variable és un factor en realitat
 f3 = Y ~ X * M # regresió simple amb un factor o model factorial
 ```
 
@@ -77,6 +79,25 @@ pwpp(emm,adjust="tukey")
 
 ### Comprovacions
 
+#### Test Anova i Omnibus
+Per fer les taules anova utilitzem la funció anova(model). Tenim tipus I, II, III i la més comú i recomenable és el tipus II (Anova()). Ens indica la significació de cada paràmetre (si cada paràmetre sol és igual a zero o no) i l'estadístic de contrast (F value)
+
+```{r}
+mod = lm(Y~X*M, dades)
+Anova(mod)
+```
+
+#### Summary
+
+```{r}
+summary(mod)$sigma^2
+summary(mod)
+```
+
+
+
+#### Errors
+
 Pels errors podem veure amb la funció plot i el parametre *which* = 1.
 La funció plot té més funcionalitats si el primer paràmetre és el model lineal i *which* = [1,6]
 
@@ -94,17 +115,9 @@ Ara veiem el plot dels residus. Recorda que s'ha de veure una distribució unifo
 plot(model1,which=1)
 # línia al 0:
 abline(h=0,lty=2)
-#with(dades,leveneTest(resid(model1),as.factor(paste(M,Any))))
-
-# (extra) El mateix en el model factorial
-
-#mf<-lm(AREA~ESPECIE*COMPOST,data=dd)
-
-#plot(mf,which=1)
-#abline(h=0,lty=2)
-
-#with(dd,leveneTest(resid(mf),as.factor(paste(ESPECIE,COMPOST))))
+with(dades,leveneTest(resid(model1),as.factor(paste(M,Any))))
 ```
+
 
 La variança estimada de l'error:
 ```{r}
