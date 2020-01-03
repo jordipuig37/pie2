@@ -49,7 +49,7 @@ f3 = Y ~ X * M # regresió simple amb un factor o model factorial
 
 #### Per veure ràpidament les dades:  
 __Funció scatterplot per les rectes de regressió__\
-*scatterplot(formula(factorial), data)* ploteja la variable resposta vs la variable en una recta per cada factor. Si la fórmula és d'un model aditiu es veu només una recta.
+*scatterplot(formula(factorial), data)* ploteja la variable resposta vs la variable en una recta per cada factor. Si la fórmula és d'un model aditiu es veu només una recta. Aquí és on hem d'observar linealitat per complir les hipòtesis dels models lineals.
 
 
 ```{r}
@@ -84,10 +84,17 @@ Per fer les taules anova utilitzem la funció anova(model). Tenim tipus I, II, I
 
 ```{r}
 mod = lm(Y~X*M, dades)
+m0d = lm(Y~1, dades)
+
 Anova(mod)
+anova(mod,m0d)
 ```
 
 #### Summary
+
+La funció summary() del model ens dona un resum. Ens dona els paràmetres del model estimats, l'error estàndard, i el t-valor i la significació del paràmetre.
+
+Per la variancia de l'error afegim $sigma^2
 
 ```{r}
 summary(mod)$sigma^2
@@ -95,12 +102,11 @@ summary(mod)
 ```
 
 
-
 #### Errors
 
-Pels errors podem veure amb la funció plot i el parametre *which* = 1.
-La funció plot té més funcionalitats si el primer paràmetre és el model lineal i *which* = [1,6]
-
+__Errors vs Y__\
+Els errors els podem veure amb la funció plot i el parametre *which* = 1.
+La funció plot té més funcionalitats si el primer paràmetre és el model lineal i *which* = [1,6]:
 
 1. A plot of residuals against fitted values\
 2. A normal Q-Q plot\
@@ -109,7 +115,7 @@ La funció plot té més funcionalitats si el primer paràmetre és el model lin
 5. A plot of residuals against leverages\
 6. A plot of Cook's distances against leverage/(1-leverage)\
 
-Ara veiem el plot dels residus. Recorda que s'ha de veure una distribució uniforme sobre el pla. Si es veu alguna forma d'embut cal aplicar transformacions.
+Ara veiem el plot dels residus. Recorda que s'ha de veure una distribució uniforme sobre el pla. Si es veu alguna forma d'embut o parabòlica cal aplicar transformacions. Aquesta distribució uniforme verifica la hipòtesis de l'independència dels errors.
 
 ```{r}
 plot(model1,which=1)
@@ -118,8 +124,10 @@ abline(h=0,lty=2)
 with(dades,leveneTest(resid(model1),as.factor(paste(M,Any))))
 ```
 
+__QQ-plot dels errors__\
+Per fer la segona comprovació dels errors fem l'anomenat qq-plot dels errors. Aquí hem  d'observar linealitat.
 
-La variança estimada de l'error:
 ```{r}
-summary(model)$sigma^2
+plot(model1, which=2)
 ```
+
