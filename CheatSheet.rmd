@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 
 ### Prèvia
 LLibreries que acostumem a incloure encara que no sabem exactament què fan.
-```{r include=F, echo=F}
+```{r}
 library(emmeans)
 library(car)
 library(RcmdrMisc)
@@ -24,15 +24,15 @@ Carregar les dades del fitxer data.csv i plantejar un model.
 ```{r}
 setwd('.')
 dades<-read.csv2("./data.csv")
-sales<-read.csv2("./sales_record100.csv", sep=",")
 # dades<-read.csv2("~/uni/2n/prob2/exercicis r/comrect.csv")
-# Assegurar-se que les columnes (en aquest cas) Any i M són factors (poden no carregar-se automàticament com a factors si són números com passa a Any)
+# Assegurar-se que les columnes (en aquest cas) Any i M són factors 
+# (poden no carregar-se automàticament com a factors si són números com passa a Any)
 dades$Any<-as.factor(dades$Any)
 dades$M<-as.factor(dades$M)
 
-
-# is.factor(dades$Any)
-
+# per comprovar-ho:
+is.factor(dades$Any)
+# plantejar un model
 model = lm(formula=Y~X, data=dades)
 ```
 
@@ -66,16 +66,25 @@ with(dades,plotMeans(response=Y,factor1=Any,factor2=M,error.bars="none",level=0.
 
 __EMMeans__\
 EMM (estimated marginal means) calcula les mitjanes marginals per alguns factors especificats a *specs*
-Podem veure quins factors són estadísticament diferents (amb un nivell de significació donat) visualment amb pwpp(em) si no estan units per la línia. Tenim funcions interessants com pairs(em) que  fa ______. La funció pwpp ens il·lustra el test de Tukey per saber quins factors són estadísticament iguals amb un nivell de significació donat.
+Podem veure quins factors són estadísticament diferents (amb un nivell de significació donat) visualment amb pwpp(em) si no estan units per la línia. Tenim funcions interessants com pairs(em) que fan un anàlisis de *emm* per parells. Calcula .
 
 ```{r}
-#dades_emm = read.csv2("./")
-model1 = lm(formula=Y ~ X+Any, data=dades)
-emm <- emmeans(object = model1, specs = ~X+Any, CIs=T)
+dades_emm <- read.csv2("./gmd.csv")
+m <- lm(GMD~DOSI,dades_emm)
+
+(emm<-emmeans(m,~DOSI))
+
 pairs(emm)
 CLD(emm)
-pwpp(emm,adjust="tukey")
 ```
+
+La funció *pwpp()* amb el paràmetre *adjust="tukey"* ens fa una gràfica que relaciona cada parell de factors i diu si són estadísticament diferents per un nivell de significació donat en l'eix x.
+
+```{r}
+pwpp(emm, adjust="tukey")
+```
+
+En aquest cas diríem que donat un nivell de significació del 0.01 són diferents si estan units, per tant D15 i D08, D00 i D15, D00 amb tots menys amb D08...
 
 ### Comprovacions
 
