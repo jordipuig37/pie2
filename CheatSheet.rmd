@@ -2,7 +2,7 @@
 title: "CheatSheet"
 output:
   html_document:
-    fig_width: 4
+    fig_width: 5
     fig_height: 4
 ---
 
@@ -28,8 +28,7 @@ Carregar les dades del fitxer data.csv i plantejar un model.
 setwd('.')
 dades<-read.csv2("./data.csv")
 # dades<-read.csv2("~/uni/2n/prob2/exercicis r/comrect.csv")
-# Assegurar-se que les columnes (en aquest cas) Any i M són factors
-# (poden no carregar-se automàticament com a factors si són números com passa a Any)
+# Assegurar-se que les columnes que han de ser factors ho son
 dades$Any<-as.factor(dades$Any)
 dades$M<-as.factor(dades$M)
 
@@ -166,6 +165,22 @@ Per fer la segona comprovació dels errors fem l'anomenat qq-plot dels errors. A
 ```{r}
 plot(mod, which=2)
 ```
+
+### Tests d'hipòtesis
+per plantejar un test d'hipòtesis de l'estil:\
+$H_{0}:E\left[C|P=60,E=15,H=150\right]=200$\
+$H_{1}:E\left[C|P=60,E=15,H=150\right]\neq200$.
+```{r}
+dd$EP<-dd$P-(dd$H/2-10)
+modE2v<-lm(C~EP+E,dd)
+sp(C~E,boxplot=F,smooth=F,dd)
+P = 60
+E = 15
+H = 150
+lht(modE2v,c(1,P-(H/2-10),E),200)
+```
+
+
 
 # GLM
 
