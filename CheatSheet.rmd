@@ -173,13 +173,99 @@ $H_{1}:E\left[C|P=60,E=15,H=150\right]\neq200$.
 ```{r}
 dd$EP<-dd$P-(dd$H/2-10)
 modE2v<-lm(C~EP+E,dd)
-sp(C~E,boxplot=F,smooth=F,dd)
 P = 60
 E = 15
 H = 150
 lht(modE2v,c(1,P-(H/2-10),E),200)
 ```
 
+## Transformacions
+Quan els models no compleixen les condicions, cal fer transformacions de diferents tipus per ajustar les prediccions. A vegades cal provar diferents transformacions per saber quina és la bona, per comprovar-ho anem fent les gràfiques dels residus i les de les bandes de predicció. Posarem l'exemple del ficus perquè és més veganfriendly.
+
+Primer carreguem les dades i fem una mica de descriptiva.
+```{r}
+ddt <- read.csv2("./ficus.csv")
+# una taula que diu coses
+cv<-function(x) {sd(x)/mean(x)}
+di<-function(x) {var(x)/mean(x)}
+t<-tabular((DIES=as.factor(DIES))~H*((n.dades=1)+(mitjana=mean)+(desv.tipus=sd)+(coef.variació=cv)+(index.disp.=di)),ddt)
+
+scatterplot(H~DIES, regLine=F, smooth=F, boxplots=F,pch=3, data=ddt)
+lines(rowLabels(t),t[,2])
+```
+#### Model A
+
+Bueno aquest model (regressió lineal) és per veure que als residus veiem formes xungues que no hauríem de veure. Posem les tres gràfiques: bandes de predicció, residus vs predits i residus studentitzats.
+
+```{r, fig.show="as.is"}
+ma<-lm(H~DIES,ddt)
+dies=0:150
+
+
+# Bandes de predicció
+pra<-predict(ma,data.frame(DIES=dies),interval="prediction")
+plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(ddt$H,pra),max(ddt$H,pra)),main="Model A")
+lines(dies,pra[,"fit"],col="blue")
+lines(dies,pra[,"lwr"],col="red")
+lines(dies,pra[,"upr"],col="red")
+
+# residus
+plot(predict(ma),resid(ma))
+abline(h=0,lt=2)
+
+plot(rstudent(ma))
+abline(h=c(-3,-2,0,2,3),lt=2)
+
+```
+
+#### Model B
+
+Ara considerarem com a funció de regressió la paràbola de H respecte DIES.
+
+```{r}
+# veiem com plantegem el model diferent:
+ddt$DIES2 <- ddt$DIES^2
+
+mb<-lm(H~DIES+DIES2,ddt)
+
+# Bandes de predicció
+prb<-predict(mb,data.frame(DIES=dies,DIES2=dies^2),interval="prediction")
+plot(dd$DIES,dd$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,prb),max(dd$H,prb)),main="Model B")
+lines(dies,prb[,"fit"],col="blue")
+lines(dies,prb[,"lwr"],col="red")
+lines(dies,prb[,"upr"],col="red")
+
+
+# residus
+plot(predict(mb),resid(mb))
+abline(h=0,lt=2)
+
+plot(rstudent(mb))
+abline(h=c(-3,-2,0,2,3),lt=2)
+```
+
+#### Model C
+Ara la transformació és amb el logaritme. Tenim que:
+$E\left[log\left(H\right)|DIES\right]=\alpha+\beta\cdot DIES$ i $Var\left(log\left(H\right)|DIES\right)=\sigma^{2}.$\
+L'interessant és que la transformació log homogeneitza les variàncies quan Var∝μ2 encara que l’important en aquest cas és que linealitza la funció eα+β⋅DIES.
+```{r}
+# model
+mc<-lm(log(H)~DIES,ddt)
+
+# bandes de predicció
+prc<-predict(mc,data.frame(DIES=dies),interval="prediction")
+plot(dd$DIES,dd$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,exp(prc)),max(dd$H,exp(prc))),main="Model C")
+lines(dies,exp(prc[,"fit"]),col="blue")
+lines(dies,exp(prc[,"lwr"]),col="red")
+lines(dies,exp(prc[,"upr"]),col="red")
+
+#residus
+plot(predict(mc),resid(mc))
+abline(h=0,lt=2)
+
+plot(rstudent(mc))
+abline(h=c(-3,-2,0,2,3),lt=2)
+```
 
 
 # GLM
