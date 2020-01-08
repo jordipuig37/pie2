@@ -1,13 +1,10 @@
 ---
 title: "CheatSheet"
-output:
-  html_document:
-    fig_width: 5
-    fig_height: 4
+output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, eval = FALSE)
 ```
 
 # Models lineals
@@ -57,6 +54,7 @@ __Funció scatterplot per les rectes de regressió__\
 ```{r}
 scatterplot(Y~X*M,smooth=F, boxplot = F,data=dades)
 ```
+
 
 __Les mitjanes per diferents factors__\
 *with(data, plotMeans(response, factor1, factor2))* fa la mitjana per cada combinació dels dos factors 1 i 2.
@@ -340,7 +338,7 @@ summary(m)
 En general se suele usar el test Chi cuadrado para hacer el anova, aunque también puede aparecer el F de fisher, depende de la familia, por suerte R te suele avisar si lo pones mal. Por lo demás, el análisis es como en los modelos lineales.
 
 #### Estadístics
-Aquí tenim els estadístics de Pearson, paràmetres de dispersió de Pearson i de deviance, i la variància $Var\left(Y|\left\{ a,b,c\right\} \right)$. 
+Aquí tenim els estadístics de Pearson, paràmetres de dispersió de Pearson i de deviance, i la variància $Var\left(Y|\left\{ a,b,c\right\} \right)$.
 
 ```{r}
 c(Pearson=Pearson<-sum(resid(m,ty="pearson")^2))
@@ -376,5 +374,3 @@ lines(predict(m, data.frame(time=as.factor(rep(16, 101)), dose=Dose), ty="respon
 lines(predict(m, data.frame(time=as.factor(rep(24, 101)), dose=Dose), ty="response")~(Dose), col="green")
 abline(h=c(0,1), col="grey")
 ```
-
-
