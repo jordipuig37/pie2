@@ -276,7 +276,8 @@ La transformació √ homogeneitza les variàncies quan Var∝μ.
 md<-lm(sqrt(H)~DIES,ddt)
 
 # bandes
-plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,prd^2),max(dd$H,prd^2)),main="Model D")
+prd<-predict(md,data.frame(DIES=dies),interval="prediction")
+plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(ddt$H,prd^2),max(ddt$H,prd^2)),main="Model D")
 lines(dies,prd[,"fit"]^2,col="blue")
 lines(dies,prd[,"lwr"]^2,col="red")
 lines(dies,prd[,"upr"]^2,col="red")
@@ -290,7 +291,8 @@ abline(h=c(-3,-2,0,2,3),lt=2)
 ```
 
 ### Test Levene
-Serveix per comprovar la hipòtesis d'Homocedasticitat 
+Serveix per comprovar la hipòtesis d'Homocedasticitat. Per acceptar l'hipòtesis nul·la hem de veure un p-valor menor a 0.05. A més cal posar Factors o una cosa així.
+
 ```{r}
 ddt$FDIES<-as.factor(ddt$DIES)
 leveneTest(resid(md),ddt$FDIES)
@@ -298,7 +300,8 @@ leveneTest(resid(md),ddt$FDIES)
 
 ### Comparació
 
-Podem fer una taula per comparar diferents models, per exemple els que han sortit:
+Podem fer una taula per comparar diferents models; per exemple, dels que han sortit comparem la logLikliehood, AIC, BIC (com més petits millor) i l'R^2 ajustat:
+
 ```{r}
 rbind(
   "logLik"=c("Model A"=logLik(ma),"Model B"=logLik(mb),"Model C"=logLik(mc),"Model D"=logLik(md)),
@@ -320,23 +323,34 @@ d. Gamma
 e. Inversa Gaussiana
 f. Otras
 
-Si te olvidas de como tienes que escribirlas solo ve a `?family`.
+Si te olvidas de como tienes que escribirlas solo ve a `family`.
 Segundo, las funciones link se especifican justo al lado y entre paréntesis de la familia. Ej.: `family=binomial(link=probit)`. Para hacer un ejemplo completo usaré uno de los últimos ejercicios:
 ```{r}
-dd <- data.frame(time=c(16,16,16,24,24,24),
+ddglm <- data.frame(time=c(16,16,16,24,24,24),
                   dose=c(0, 0.45, 0.75, 0, 0.45, 0.75),
                   tumor=c(1,3,7, 20,98,118),
                   total=c(205,304,193, 762,888,587))
-dd$time <- as.factor(dd$time)
+ddglm$time <- as.factor(ddglm$time)
 
-m <- glm(tumor/total~time*dose, data=dd, family=binomial, weights=total)
+m <- glm(tumor/total~time*dose, data=ddglm, family=binomial, weights=total)
 anova(m, test="Chisq")
 summary(m)
 ```
 
 En general se suele usar el test Chi cuadrado para hacer el anova, aunque también puede aparecer el F de fisher, depende de la familia, por suerte R te suele avisar si lo pones mal. Por lo demás, el análisis es como en los modelos lineales.
 
-__Residuos__
+#### Estadístics
+Aquí tenim els estadístics de Pearson, paràmetres de dispersió de Pearson i de deviance, i la variància $Var\left(Y|\left\{ a,b,c\right\} \right)$. 
+
+```{r}
+c(Pearson=Pearson<-sum(resid(m,ty="pearson")^2))
+c(dispP=dispP<-Pearson/m$df.residual)
+c(Deviance=Deviance<-sum(resid(m,ty="deviance")^2),m$deviance)
+c(dispD=dispD<-Deviance/m$df.residual)
+```
+
+
+### Residuos
 Hay de dos tipos, devianza y pearson. Se puede utilizar para calcular el parámetro de dispersión que en el caso de la Poisson y la binomial debe ser cercano a 1.
 ```{r}
 resid(m, ty="pearson")
@@ -353,11 +367,14 @@ abline(h=c(-2,0,2), lty=2)
 ```
 
 
-___Predicciones___
+### Predicciones
+
 ```{r}
 Dose <- seq(0, 1, .01)
-plot(tumor/total~(dose), data=dd)
+plot(tumor/total~(dose), data=ddglm)
 lines(predict(m, data.frame(time=as.factor(rep(16, 101)), dose=Dose), ty="response")~(Dose), col="red")
 lines(predict(m, data.frame(time=as.factor(rep(24, 101)), dose=Dose), ty="response")~(Dose), col="green")
 abline(h=c(0,1), col="grey")
 ```
+
+
