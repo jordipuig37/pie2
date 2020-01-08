@@ -193,13 +193,13 @@ t<-tabular((DIES=as.factor(DIES))~H*((n.dades=1)+(mitjana=mean)+(desv.tipus=sd)+
 scatterplot(H~DIES, regLine=F, smooth=F, boxplots=F,pch=3, data=ddt)
 lines(rowLabels(t),t[,2])
 ```
-#### Model A
+#### Regressió simple
 
 Bueno aquest model (regressió lineal) és per veure que als residus veiem formes xungues que no hauríem de veure. Posem les tres gràfiques: bandes de predicció, residus vs predits i residus studentitzats.
 
 ```{r, fig.show="as.is"}
 ma<-lm(H~DIES,ddt)
-dies=0:150
+dies=1:150
 
 
 # Bandes de predicció
@@ -218,19 +218,18 @@ abline(h=c(-3,-2,0,2,3),lt=2)
 
 ```
 
-#### Model B
+#### Paràbola
 
-Ara considerarem com a funció de regressió la paràbola de H respecte DIES.
+Ara considerarem com a funció de regressió la paràbola de H respecte DIES. Cal afegir una columna que són les observacions al quadrat (en aquest cas DIES). Si es vol augmentar el grau del polinomi cal afegir columnes d'acord amb el grau.
 
 ```{r}
-# veiem com plantegem el model diferent:
+# veiem com plantegem el model diferent (creem una columna nova a ddt):
 ddt$DIES2 <- ddt$DIES^2
-
 mb<-lm(H~DIES+DIES2,ddt)
 
 # Bandes de predicció
 prb<-predict(mb,data.frame(DIES=dies,DIES2=dies^2),interval="prediction")
-plot(dd$DIES,dd$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,prb),max(dd$H,prb)),main="Model B")
+plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(ddt$H,prb),max(ddt$H,prb)),main="Model B")
 lines(dies,prb[,"fit"],col="blue")
 lines(dies,prb[,"lwr"],col="red")
 lines(dies,prb[,"upr"],col="red")
@@ -244,17 +243,19 @@ plot(rstudent(mb))
 abline(h=c(-3,-2,0,2,3),lt=2)
 ```
 
-#### Model C
+#### Logaritme
 Ara la transformació és amb el logaritme. Tenim que:
 $E\left[log\left(H\right)|DIES\right]=\alpha+\beta\cdot DIES$ i $Var\left(log\left(H\right)|DIES\right)=\sigma^{2}.$\
 L'interessant és que la transformació log homogeneitza les variàncies quan Var∝μ2 encara que l’important en aquest cas és que linealitza la funció eα+β⋅DIES.
 ```{r}
-# model
+# model log(H)
 mc<-lm(log(H)~DIES,ddt)
+# també tenim transformacions del tipus: (producció de llet)
+# ml<-lm(log(PROD)~DIES+log(DIES),dd)
 
 # bandes de predicció
 prc<-predict(mc,data.frame(DIES=dies),interval="prediction")
-plot(dd$DIES,dd$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,exp(prc)),max(dd$H,exp(prc))),main="Model C")
+plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(ddt$H,exp(prc)),max(ddt$H,exp(prc))),main="Model C")
 lines(dies,exp(prc[,"fit"]),col="blue")
 lines(dies,exp(prc[,"lwr"]),col="red")
 lines(dies,exp(prc[,"upr"]),col="red")
@@ -265,6 +266,46 @@ abline(h=0,lt=2)
 
 plot(rstudent(mc))
 abline(h=c(-3,-2,0,2,3),lt=2)
+```
+
+#### Arrel quadrada
+La transformació √ homogeneitza les variàncies quan Var∝μ.
+
+```{r}
+# veiem la transformació sqrt(H)
+md<-lm(sqrt(H)~DIES,ddt)
+
+# bandes
+plot(ddt$DIES,ddt$H,pch=3,xlim=c(0,150),xlab="dies",ylab="H",ylim=c(min(dd$H,prd^2),max(dd$H,prd^2)),main="Model D")
+lines(dies,prd[,"fit"]^2,col="blue")
+lines(dies,prd[,"lwr"]^2,col="red")
+lines(dies,prd[,"upr"]^2,col="red")
+
+# residus
+plot(predict(md),resid(md))
+abline(h=0,lt=2)
+
+plot(rstudent(md))
+abline(h=c(-3,-2,0,2,3),lt=2)
+```
+
+### Test Levene
+Serveix per comprovar la hipòtesis d'Homocedasticitat 
+```{r}
+ddt$FDIES<-as.factor(ddt$DIES)
+leveneTest(resid(md),ddt$FDIES)
+```
+
+### Comparació
+
+Podem fer una taula per comparar diferents models, per exemple els que han sortit:
+```{r}
+rbind(
+  "logLik"=c("Model A"=logLik(ma),"Model B"=logLik(mb),"Model C"=logLik(mc),"Model D"=logLik(md)),
+  "AIC"=c(AIC(ma),AIC(mb),AIC(mc),AIC(md)),
+  "BIC"=c(BIC(ma),BIC(mb),BIC(mc),BIC(md)),
+  "R2"=c(summary(ma)$adj.r.squared,summary(mb)$adj.r.squared,summary(mc)$adj.r.squared,summary(md)$adj.r.squared))
+
 ```
 
 
